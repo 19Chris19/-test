@@ -1,0 +1,13 @@
+name: Source Feedback
+description: Track source additions or parser fixes
+title: "[信源] "
+labels: ["source-feedback"]
+body:
+  - type: textarea
+    id: detail
+    attributes:
+      label: Detail
+      description: Source change request
+    validations:
+      required: true
+

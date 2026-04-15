@@ -1,0 +1,20 @@
+name: Daily Report
+description: Publish a daily report issue
+title: "[日报] "
+labels: ["published"]
+body:
+  - type: input
+    id: report_date
+    attributes:
+      label: Report Date
+      placeholder: "2026-04-15"
+    validations:
+      required: true
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: Final Markdown body for the published report
+    validations:
+      required: true
+
