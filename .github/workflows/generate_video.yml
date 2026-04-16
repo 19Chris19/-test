@@ -143,35 +143,35 @@ jobs:
               echo "Auto-TTS failed. Falling back to silent narration for CI continuity."
               fallback_audio="${{ steps.params.outputs.output_dir }}/narration.fallback.wav"
               python - <<'PY' "${{ steps.params.outputs.plan_path }}" "${fallback_audio}"
-import json
-import math
-import sys
-import wave
-from pathlib import Path
+          import json
+          import math
+          import sys
+          import wave
+          from pathlib import Path
 
-plan_path = Path(sys.argv[1])
-audio_path = Path(sys.argv[2])
-payload = json.loads(plan_path.read_text(encoding="utf-8"))
-timeline = payload.get("timeline", [])
-duration = 0.0
-for item in timeline:
-    if isinstance(item, dict):
-        duration += float(item.get("duration_seconds", 0.0) or 0.0)
-duration = max(duration, 5.0)
+          plan_path = Path(sys.argv[1])
+          audio_path = Path(sys.argv[2])
+          payload = json.loads(plan_path.read_text(encoding="utf-8"))
+          timeline = payload.get("timeline", [])
+          duration = 0.0
+          for item in timeline:
+              if isinstance(item, dict):
+                  duration += float(item.get("duration_seconds", 0.0) or 0.0)
+          duration = max(duration, 5.0)
 
-audio_path.parent.mkdir(parents=True, exist_ok=True)
-sample_rate = 16000
-total_samples = int(math.ceil(duration * sample_rate))
-chunk_samples = sample_rate
-with wave.open(str(audio_path), "wb") as handle:
-    handle.setnchannels(1)
-    handle.setsampwidth(2)
-    handle.setframerate(sample_rate)
-    while total_samples > 0:
-        current = min(total_samples, chunk_samples)
-        handle.writeframes(b"\x00\x00" * current)
-        total_samples -= current
-PY
+          audio_path.parent.mkdir(parents=True, exist_ok=True)
+          sample_rate = 16000
+          total_samples = int(math.ceil(duration * sample_rate))
+          chunk_samples = sample_rate
+          with wave.open(str(audio_path), "wb") as handle:
+              handle.setnchannels(1)
+              handle.setsampwidth(2)
+              handle.setframerate(sample_rate)
+              while total_samples > 0:
+                  current = min(total_samples, chunk_samples)
+                  handle.writeframes(b"\x00\x00" * current)
+                  total_samples -= current
+          PY
               fallback_cmd=("${base_cmd[@]}")
               fallback_cmd+=(--audio "${fallback_audio}")
               "${fallback_cmd[@]}"
