@@ -1,0 +1,19 @@
+categories:
+  - name: 模型发布
+    keywords: ["model", "release", "launch", "open weights", "开源", "模型"]
+
+  - name: 开发工具
+    keywords: ["sdk", "tool", "cli", "framework", "插件", "工作流"]
+
+  - name: 产品更新
+    keywords: ["product", "app", "feature", "上线", "更新"]
+
+  - name: 论文/研究
+    keywords: ["paper", "arxiv", "research", "benchmark", "论文"]
+
+  - name: 行业动态
+    keywords: ["funding", "acquisition", "hiring", "board", "融资", "收购"]
+
+  - name: 3DGS / XR 专报
+    keywords: ["3dgs", "gaussian splatting", "xr", "webxr", "nerf", "radiance field"]
+

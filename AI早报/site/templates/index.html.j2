@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{{ title }}</title>
+    <link rel="stylesheet" href="custom.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <header class="hero">
+        <p class="eyebrow">GitHub Issue → RSS → Pages</p>
+        <h1>{{ title }}</h1>
+        <p class="subtitle">{{ subtitle }}</p>
+        <div class="hero-links">
+          <a class="button" href="{{ rss_href }}">RSS 订阅</a>
+          <a class="button button-secondary" href="{{ site_link }}">项目主页</a>
+        </div>
+      </header>
+
+      <section class="panel">
+        <div class="section-head">
+          <h2>最近发布</h2>
+          <p>Issue 是发布真源，备份与站点只是展开层。</p>
+        </div>
+        <div class="issue-grid">
+          {% for issue in issues %}
+          <article class="issue-card">
+            <p class="issue-meta">#{{ issue.issue_number }} · {{ issue.report_date }}</p>
+            <h3><a href="{{ issue.github_url }}">{{ issue.title }}</a></h3>
+            <p class="issue-summary">{{ issue.article_count }} 条精选内容</p>
+            {% if issue.top_titles %}
+            <ul class="issue-list">
+              {% for item in issue.top_titles %}
+              <li>{{ item }}</li>
+              {% endfor %}
+            </ul>
+            {% endif %}
+            {% if issue.backup_url %}
+            <a class="issue-link" href="{{ issue.backup_url }}">Markdown 备份</a>
+            {% endif %}
+          </article>
+          {% else %}
+          <p class="empty-state">目前还没有已发布的 Issue。</p>
+          {% endfor %}
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

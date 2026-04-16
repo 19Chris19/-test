@@ -1,0 +1,45 @@
+sources:
+  - id: arxiv_cs_ai
+    name: arXiv cs.AI
+    type: arxiv
+    url: "https://rss.arxiv.org/rss/cs.AI"
+    enabled: true
+    weight: 0.85
+    fetch_interval_minutes: 180
+    parser: arxiv
+
+  - id: arxiv_cs_cv
+    name: arXiv cs.CV
+    type: arxiv
+    url: "https://rss.arxiv.org/rss/cs.CV"
+    enabled: true
+    weight: 0.9
+    fetch_interval_minutes: 180
+    parser: arxiv
+
+  - id: graphdeco_gaussian_splatting
+    name: graphdeco-inria/gaussian-splatting releases
+    type: github_release
+    url: "https://api.github.com/repos/graphdeco-inria/gaussian-splatting/releases"
+    enabled: true
+    weight: 0.95
+    fetch_interval_minutes: 360
+    parser: github_release
+
+  - id: nerfstudio_gsplat
+    name: nerfstudio-project/gsplat releases
+    type: github_release
+    url: "https://api.github.com/repos/nerfstudio-project/gsplat/releases"
+    enabled: true
+    weight: 0.95
+    fetch_interval_minutes: 360
+    parser: github_release
+
+  - id: playcanvas_supersplat
+    name: playcanvas/supersplat releases
+    type: github_release
+    url: "https://api.github.com/repos/playcanvas/supersplat/releases"
+    enabled: true
+    weight: 0.9
+    fetch_interval_minutes: 360
+    parser: github_release

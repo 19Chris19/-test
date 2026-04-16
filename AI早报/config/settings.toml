@@ -1,0 +1,13 @@
+app_name = "AI 早报"
+environment = "development"
+timezone = "Asia/Shanghai"
+database_path = "data/ai_daily.db"
+github_repo = ""
+site_title = "AI 早报"
+site_base_url = ""
+llm_model = "Qwen2.5-72B-Instruct"
+llm_base_url = "https://api.edgefn.net/v1"
+draft_trigger_label = "trigger-draft"
+publish_label = "published"
+classify_score_threshold = 45.0
+fetch_timeout_seconds = 20
