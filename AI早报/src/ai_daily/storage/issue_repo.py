@@ -7,6 +7,7 @@ from datetime import UTC, datetime
 
 from ai_daily.models.article import Article
 from ai_daily.models.issue import IssueRecord
+from ai_daily.models.publication import PublishedArticle, PublishedIssue
 from ai_daily.pipeline.draft import rendered_summary
 from ai_daily.storage.db import Database
 
@@ -97,6 +98,92 @@ class IssueRepository:
             markdown_path=row["markdown_path"],
             github_url=row["github_url"],
             published_at=row["published_at"],
+        )
+
+    def list_published_bundles(self) -> list[PublishedIssue]:
+        with self.database.connect() as connection:
+            issue_rows = connection.execute(
+                """
+                SELECT id, issue_number, report_date, title, status, markdown_path,
+                       github_url, published_at
+                FROM issues
+                WHERE status = 'published'
+                ORDER BY COALESCE(published_at, created_at) DESC, issue_number DESC, id DESC
+                """
+            ).fetchall()
+            return [
+                self._published_issue_from_rows(
+                    connection,
+                    issue_row,
+                )
+                for issue_row in issue_rows
+            ]
+
+    def get_published_bundle(self, issue_number: int) -> PublishedIssue | None:
+        with self.database.connect() as connection:
+            issue_row = connection.execute(
+                """
+                SELECT id, issue_number, report_date, title, status, markdown_path,
+                       github_url, published_at
+                FROM issues
+                WHERE issue_number = ? AND status = 'published'
+                LIMIT 1
+                """,
+                (issue_number,),
+            ).fetchone()
+            if issue_row is None:
+                return None
+            return self._published_issue_from_rows(connection, issue_row)
+
+    @staticmethod
+    def _published_article_from_row(row: sqlite3.Row) -> PublishedArticle:
+        return PublishedArticle(
+            article_id=int(row["article_id"]),
+            section=row["section"],
+            rank=int(row["rank"]),
+            title=row["title_snapshot"],
+            url=row["source_url_snapshot"],
+            rendered_summary=row["rendered_summary"],
+            dedupe_key=row["dedupe_key"],
+            source_url=row["source_url_snapshot"],
+            article_score=float(row["article_score_snapshot"] or 0.0),
+        )
+
+    @staticmethod
+    def _published_issue_from_rows(
+        connection: sqlite3.Connection,
+        issue_row: sqlite3.Row,
+    ) -> PublishedIssue:
+        article_rows = connection.execute(
+            """
+            SELECT
+                ia.article_id,
+                ia.section,
+                ia.rank,
+                ia.title_snapshot,
+                ia.source_url_snapshot,
+                ia.article_score_snapshot,
+                ia.rendered_summary,
+                a.dedupe_key
+            FROM issue_articles AS ia
+            JOIN articles AS a ON a.id = ia.article_id
+            WHERE ia.issue_id = ?
+            ORDER BY ia.rank ASC, ia.article_id ASC
+            """,
+            (issue_row["id"],),
+        ).fetchall()
+        articles = [IssueRepository._published_article_from_row(row) for row in article_rows]
+        return PublishedIssue(
+            issue_id=int(issue_row["id"] or 0),
+            issue_number=int(issue_row["issue_number"] or 0),
+            report_date=issue_row["report_date"],
+            title=issue_row["title"],
+            status=issue_row["status"],
+            markdown_path=issue_row["markdown_path"],
+            github_url=issue_row["github_url"],
+            published_at=issue_row["published_at"],
+            article_count=len(articles),
+            articles=articles,
         )
 
 

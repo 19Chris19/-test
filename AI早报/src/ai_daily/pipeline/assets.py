@@ -5,7 +5,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from ai_daily.config import PROJECT_ROOT, AppSettings, load_settings
-from ai_daily.models.publication import PublishedArticle, PublishedIssue
+from ai_daily.models.publication import PublishedIssue
 from ai_daily.render.backup import render_backup_markdown
 from ai_daily.render.readme import render_readme
 from ai_daily.render.rss import render_rss_xml
@@ -58,59 +58,7 @@ def _backup_base_url(settings: AppSettings) -> str:
 
 def _read_published_issues(database: Database) -> list[PublishedIssue]:
     issue_repo = IssueRepository(database)
-    issue_rows = issue_repo.list_published()
-    issues: list[PublishedIssue] = []
-
-    with database.connect() as connection:
-        for issue_row in issue_rows:
-            article_rows = connection.execute(
-                """
-                SELECT
-                    ia.article_id,
-                    ia.section,
-                    ia.rank,
-                    ia.title_snapshot,
-                    ia.source_url_snapshot,
-                    ia.article_score_snapshot,
-                    ia.rendered_summary,
-                    a.dedupe_key
-                FROM issue_articles AS ia
-                JOIN articles AS a ON a.id = ia.article_id
-                WHERE ia.issue_id = ?
-                ORDER BY ia.rank ASC, ia.article_id ASC
-                """,
-                (issue_row.id,),
-            ).fetchall()
-
-            articles = [
-                PublishedArticle(
-                    article_id=row["article_id"],
-                    section=row["section"],
-                    rank=row["rank"],
-                    title=row["title_snapshot"],
-                    url=row["source_url_snapshot"],
-                    rendered_summary=row["rendered_summary"],
-                    dedupe_key=row["dedupe_key"],
-                    source_url=row["source_url_snapshot"],
-                    article_score=row["article_score_snapshot"],
-                )
-                for row in article_rows
-            ]
-            issues.append(
-                PublishedIssue(
-                    issue_id=issue_row.id or 0,
-                    issue_number=issue_row.issue_number or 0,
-                    report_date=issue_row.report_date,
-                    title=issue_row.title,
-                    status=issue_row.status,
-                    markdown_path=issue_row.markdown_path,
-                    github_url=issue_row.github_url,
-                    published_at=issue_row.published_at,
-                    article_count=len(articles),
-                    articles=articles,
-                )
-            )
-    return issues
+    return issue_repo.list_published_bundles()
 
 
 def _read_issue_by_number(database: Database, issue_number: int) -> PublishedIssue:
