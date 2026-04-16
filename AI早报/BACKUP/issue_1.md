@@ -1,0 +1,78 @@
+<!-- Repository license: MIT -->
+<!-- Content license: CC BY-NC 4.0 -->
+
+# AI 早报 2026-04-16
+
+> 发布源：https://github.com/19Chris19/-test/issues/1
+> 报告日期：2026-04-16
+> Issue 编号：#1
+
+## 模型发布
+
+### [ABot-M0: VLA Foundation Model for Robotic Manipulation with Action Manifold Learning](https://arxiv.org/abs/2602.11236)
+arXiv:2602.11236v2 Announce Type: replace Abstract: Building general-purpose embodied agents across diverse hardware remains a central challenge in robotics, o…
+<!-- article_id:518 source_url:https://arxiv.org/abs/2602.11236 dedupe_key:13f585ba4e64821b40965574b06295285459a5743969d524fff6d065bdb26eab -->
+
+### [GlotOCR Bench: OCR Models Still Struggle Beyond a Handful of Unicode Scripts](https://arxiv.org/abs/2604.12978)
+arXiv:2604.12978v1 Announce Type: cross Abstract: Optical character recognition (OCR) has advanced rapidly with the rise of vision-language models, yet evaluat…
+<!-- article_id:479 source_url:https://arxiv.org/abs/2604.12978 dedupe_key:823d8ceee95b6e3092f204e6d093f02563bcde11e788e2caf7012b1d57326747 -->
+
+### [LaV-CoT: Language-Aware Visual CoT with Multi-Aspect Reward Optimization for Real-World Multilingual VQA](https://arxiv.org/abs/2509.10026)
+arXiv:2509.10026v4 Announce Type: replace Abstract: As large vision language models (VLMs) advance, their capabilities in multilingual visual question answerin…
+<!-- article_id:498 source_url:https://arxiv.org/abs/2509.10026 dedupe_key:7d71b57272f9d8b5974791fbaf1ccdfc2fdeec96bee11152761335196af399f7 -->
+
+## 开发工具
+
+### [MVOS_HSI: A Python Library for Preprocessing Agricultural Crop Hyperspectral Data](https://arxiv.org/abs/2604.07656)
+arXiv:2604.07656v3 Announce Type: replace-cross Abstract: Hyperspectral imaging (HSI) allows researchers to study plant traits non-destructively. By capturing…
+<!-- article_id:570 source_url:https://arxiv.org/abs/2604.07656 dedupe_key:e1541b3db32514e4c238ea30272e3cbf904184cf43a59576db5f8a1a5f72b3fc -->
+
+### [BINDER: Instantly Adaptive Mobile Manipulation with Open-Vocabulary Commands](https://arxiv.org/abs/2511.22364)
+arXiv:2511.22364v2 Announce Type: replace-cross Abstract: Open-vocabulary mobile manipulation (OVMM) requires robots to follow language instructions, navigate,…
+<!-- article_id:286 source_url:https://arxiv.org/abs/2511.22364 dedupe_key:d520ec8cb7ecc19c26ea688e80e8d5b8bd06ecb0dccb4f34be4626be2b5301ce -->
+
+### [Beyond Static Sandboxing: Learned Capability Governance for Autonomous AI Agents](https://arxiv.org/abs/2604.11839)
+arXiv:2604.11839v1 Announce Type: cross Abstract: Autonomous AI agents built on open-source runtimes such as OpenClaw expose every available tool to every sess…
+<!-- article_id:78 source_url:https://arxiv.org/abs/2604.11839 dedupe_key:c4a546efa6ae5bfc9fbf659b6acc5c293c151879e27f767bfa9d3d8686e9ab62 -->
+
+## 产品更新
+
+### [Style-Decoupled Adaptive Routing Network for Underwater Image Enhancement](https://arxiv.org/abs/2604.12257)
+arXiv:2604.12257v1 Announce Type: new Abstract: Underwater Image Enhancement (UIE) is essential for robust visual perception in marine applications. However, e…
+<!-- article_id:369 source_url:https://arxiv.org/abs/2604.12257 dedupe_key:a17177df467757d95630a27b9070539c7ec93532cac031f57df1fddeb0007a39 -->
+
+### [Chain-of-Models Pre-Training: Rethinking Training Acceleration of Vision Foundation Models](https://arxiv.org/abs/2604.12391)
+arXiv:2604.12391v1 Announce Type: cross Abstract: In this paper, we present Chain-of-Models Pre-Training (CoM-PT), a novel performance-lossless training accele…
+<!-- article_id:139 source_url:https://arxiv.org/abs/2604.12391 dedupe_key:d22ccd4039ed1cc2226f5f3cabcb8cf9f7292f9c6fd1975099fd839f3c07a14f -->
+
+### [Neural Dynamic GI: Random-Access Neural Compression for Temporal Lightmaps in Dynamic Lighting Environments](https://arxiv.org/abs/2604.12625)
+arXiv:2604.12625v1 Announce Type: cross Abstract: High-quality global illumination (GI) in real-time rendering is commonly achieved using precomputed lighting…
+<!-- article_id:165 source_url:https://arxiv.org/abs/2604.12625 dedupe_key:0f639706a886551e0bc64765603e98ff48633618b36ddb65b54ad30918f8ffcd -->
+
+## 论文/研究
+
+### [Generative Refinement Networks for Visual Synthesis](https://arxiv.org/abs/2604.13030)
+arXiv:2604.13030v1 Announce Type: new Abstract: While diffusion models dominate the field of visual generation, they are computationally inefficient, applying…
+<!-- article_id:455 source_url:https://arxiv.org/abs/2604.13030 dedupe_key:28272d9ece05c174392747f55bc4654e87870f19be5f7b01b6595e1c95e16ab4 -->
+
+### [Listening Deepfake Detection: A New Perspective Beyond Speaking-Centric Forgery Analysis](https://arxiv.org/abs/2604.12650)
+arXiv:2604.12650v1 Announce Type: new Abstract: Existing deepfake detection research has primarily focused on scenarios where the manipulated subject is active…
+<!-- article_id:414 source_url:https://arxiv.org/abs/2604.12650 dedupe_key:7226076396e45aad77397523fb6ed6a94865af7a5bbead642b73c79d34b4f952 -->
+
+### [Scalable Trajectory Generation for Whole-Body Mobile Manipulation](https://arxiv.org/abs/2604.12565)
+arXiv:2604.12565v1 Announce Type: cross Abstract: Robots deployed in unstructured environments must coordinate whole-body motion -- simultaneously moving a mob…
+<!-- article_id:471 source_url:https://arxiv.org/abs/2604.12565 dedupe_key:318f469564d168c0a229c77765fc190a6508d1f587e3056fb3c7314980c4e7a6 -->
+
+## 3DGS / XR 专报
+
+### [v1.1.0](https://github.com/nerfstudio-project/gsplat/releases/tag/v1.1.0)
+## Highlight Multiple densification strategies are now supported in gsplat, including - `DefaultStrategy()`: The original 3DGS densification process. - `Defaul…
+<!-- article_id:582 source_url:https://github.com/nerfstudio-project/gsplat/releases/tag/v1.1.0 dedupe_key:8b8491591c11a9ad32a37b013591999a5889320c575efecba037e61e7926cfda -->
+
+### [v1.1.1](https://github.com/nerfstudio-project/gsplat/releases/tag/v1.1.1)
+## What's Changed hot fix **Full Changelog**: https://github.com/nerfstudio-project/gsplat/compare/v1.1.0...v1.1.1
+<!-- article_id:581 source_url:https://github.com/nerfstudio-project/gsplat/releases/tag/v1.1.1 dedupe_key:69e5117657564b7e334358e56fbcb2f3888d24bca50975c3f9459f9e56c41144 -->
+
+### [v1.2.0](https://github.com/nerfstudio-project/gsplat/releases/tag/v1.2.0)
+## Highlight Multi-GPU distributed rasterization is supported! E.g. 4 GPUs could lead to more than 3x speedup as well as 3x less memory usage at the same time.…
+<!-- article_id:579 source_url:https://github.com/nerfstudio-project/gsplat/releases/tag/v1.2.0 dedupe_key:c40d084a4ca33a460f71999ed3edca385dc87cbde2edb310af2f0df8e32f6478 -->

@@ -1,0 +1,151 @@
+:root {
+  --bg: #f7f1e8;
+  --fg: #1f1b18;
+  --accent: #0f766e;
+  --accent-soft: rgba(15, 118, 110, 0.12);
+  --card: rgba(255, 255, 255, 0.78);
+  --border: rgba(31, 27, 24, 0.12);
+}
+
+body {
+  margin: 0;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  background:
+    radial-gradient(circle at top left, rgba(15, 118, 110, 0.14), transparent 30%),
+    linear-gradient(180deg, #fffdf8 0%, var(--bg) 100%);
+  color: var(--fg);
+}
+
+.shell {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 64px 24px 80px;
+}
+
+h1 {
+  margin: 0 0 16px;
+}
+
+.hero {
+  padding: 24px 0 36px;
+}
+
+.eyebrow {
+  margin: 0 0 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
+.subtitle {
+  margin: 0 0 20px;
+  font-size: 1.08rem;
+  max-width: 48rem;
+  line-height: 1.65;
+}
+
+.hero-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 16px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #fff;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.button-secondary {
+  background: var(--card);
+  color: var(--fg);
+  border: 1px solid var(--border);
+}
+
+.panel {
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  background: var(--card);
+  backdrop-filter: blur(14px);
+  box-shadow: 0 20px 60px rgba(31, 27, 24, 0.08);
+  padding: 24px;
+}
+
+.section-head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: baseline;
+  margin-bottom: 20px;
+}
+
+.section-head h2 {
+  margin: 0;
+}
+
+.section-head p {
+  margin: 0;
+  color: rgba(31, 27, 24, 0.72);
+}
+
+.issue-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+}
+
+.issue-card {
+  padding: 18px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.82);
+  border: 1px solid var(--border);
+}
+
+.issue-card h3 {
+  margin: 6px 0 10px;
+  font-size: 1.08rem;
+  line-height: 1.45;
+}
+
+.issue-card h3 a {
+  color: var(--fg);
+  text-decoration: none;
+}
+
+.issue-meta {
+  margin: 0;
+  color: var(--accent);
+  font-size: 0.86rem;
+  font-weight: 700;
+}
+
+.issue-summary {
+  margin: 0 0 10px;
+  color: rgba(31, 27, 24, 0.74);
+}
+
+.issue-list {
+  margin: 0 0 14px;
+  padding-left: 18px;
+  color: rgba(31, 27, 24, 0.84);
+}
+
+.issue-link {
+  color: var(--accent);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.empty-state {
+  margin: 0;
+  color: rgba(31, 27, 24, 0.72);
+}

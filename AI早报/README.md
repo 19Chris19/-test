@@ -49,7 +49,8 @@ PYTHONPATH=src python -m ai_daily.cli llm-cache-stats
 
 ## 最近发布
 
-- 目前还没有已发布的 Issue。
+- [2026-04-16 · #1 AI 早报 2026-04-16](https://github.com/19Chris19/-test/issues/1)
+  - 备份：[issue_1.md](BACKUP/issue_1.md)
 
 ## 入口
 
