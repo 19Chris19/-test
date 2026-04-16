@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import base64
 import copy
 import hashlib
 import json
@@ -472,6 +473,77 @@ def _tts_cache_key(*, config: TtsConfig, text: str) -> str:
     return hashlib.sha256(seed.encode("utf-8")).hexdigest()
 
 
+def _decode_chat_completion_audio(raw_response: bytes) -> bytes:
+    try:
+        payload = json.loads(raw_response.decode("utf-8"))
+    except Exception as exc:  # pragma: no cover - defensive guard
+        raise RuntimeError(f"Invalid JSON response from chat/completions: {exc}") from exc
+
+    choices = payload.get("choices")
+    if not isinstance(choices, list) or not choices:
+        raise RuntimeError("chat/completions response missing choices")
+
+    message = choices[0].get("message") if isinstance(choices[0], dict) else None
+    audio = message.get("audio") if isinstance(message, dict) else None
+    encoded_audio = audio.get("data") if isinstance(audio, dict) else None
+    if not isinstance(encoded_audio, str) or not encoded_audio.strip():
+        raise RuntimeError("chat/completions response missing message.audio.data")
+
+    try:
+        return base64.b64decode(encoded_audio, validate=True)
+    except Exception as exc:  # pragma: no cover - defensive guard
+        raise RuntimeError(f"Invalid base64 audio payload: {exc}") from exc
+
+
+def _call_tts_via_chat_completions(config: TtsConfig, text: str) -> bytes:
+    endpoint = f"{config.base_url}/chat/completions"
+    headers = {
+        "Authorization": f"Bearer {config.api_key}",
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+    }
+    payload_variants = [
+        {
+            "model": config.model,
+            "modalities": ["audio"],
+            "audio": {"voice": config.voice, "format": config.response_format},
+            "messages": [{"role": "assistant", "content": text}],
+        },
+        {
+            "model": config.model,
+            "messages": [{"role": "assistant", "content": text}],
+        },
+    ]
+
+    last_error = "unknown tts fallback error"
+    for payload in payload_variants:
+        body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
+        for attempt in range(config.max_retries):
+            request = urllib.request.Request(endpoint, data=body, headers=headers, method="POST")
+            try:
+                with urllib.request.urlopen(request, timeout=config.timeout_seconds) as response:
+                    return _decode_chat_completion_audio(response.read())
+            except urllib.error.HTTPError as exc:
+                raw = exc.read()
+                message = raw.decode("utf-8", errors="ignore")[:240]
+                last_error = f"HTTP {exc.code}: {message}"
+                if exc.code in RETRYABLE_HTTP_STATUS and attempt < config.max_retries - 1:
+                    time.sleep((2**attempt) + 0.25)
+                    continue
+                break
+            except urllib.error.URLError as exc:
+                last_error = str(exc)
+                if attempt < config.max_retries - 1:
+                    time.sleep((2**attempt) + 0.25)
+                    continue
+                break
+            except RuntimeError as exc:
+                last_error = str(exc)
+                break
+
+    raise RuntimeError(f"TTS chat-completions fallback failed: {last_error}")
+
+
 def _call_tts(config: TtsConfig, text: str) -> bytes:
     endpoint = f"{config.base_url}/audio/speech"
     payload = {
@@ -497,6 +569,8 @@ def _call_tts(config: TtsConfig, text: str) -> bytes:
         except urllib.error.HTTPError as exc:
             raw = exc.read()
             message = raw.decode("utf-8", errors="ignore")[:240]
+            if exc.code == 404:
+                return _call_tts_via_chat_completions(config=config, text=text)
             last_error = f"HTTP {exc.code}: {message}"
             if exc.code in RETRYABLE_HTTP_STATUS and attempt < config.max_retries - 1:
                 time.sleep((2**attempt) + 0.25)
