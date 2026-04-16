@@ -7,6 +7,20 @@ from pathlib import Path
 import typer
 
 from ai_daily.config import load_categories, load_settings, load_sources
+from ai_daily.export.card import (
+    build_card_payload,
+    card_payload_to_json,
+    write_card_payload,
+)
+from ai_daily.export.video import (
+    build_video_plan as assemble_video_plan,
+)
+from ai_daily.export.video import (
+    default_backup_path,
+    parse_backup_markdown,
+    video_plan_to_json,
+    write_video_artifacts,
+)
 from ai_daily.fetchers.factory import create_fetcher
 from ai_daily.llm.client import LlmClient
 from ai_daily.pipeline.assets import AssetResult, generate_assets
@@ -18,6 +32,7 @@ from ai_daily.pipeline.publish import publish_draft
 from ai_daily.pipeline.score import run_score
 from ai_daily.storage.article_repo import ArticleRepository
 from ai_daily.storage.db import Database
+from ai_daily.storage.issue_repo import IssueRepository
 from ai_daily.storage.llm_cache_repo import LlmCacheRepository
 from ai_daily.storage.source_repo import SourceRepository
 
@@ -257,6 +272,97 @@ def publish(
         dry_run=dry_run,
     )
     typer.echo(json.dumps(result.model_dump(mode="json"), ensure_ascii=False, indent=2))
+
+
+@app.command("export-card-payload")
+def export_card_payload(
+    issue_number: int = typer.Option(..., "--issue-number", help="Published issue number"),
+    output: Path | None = typer.Option(None, "--output", help="Write JSON to path"),
+    db_path: str | None = typer.Option(default=None, help="Override database path"),
+) -> None:
+    database = _database(db_path)
+    database.initialize()
+    repo = IssueRepository(database)
+    issue = repo.get_published_bundle(issue_number)
+    if issue is None:
+        raise ValueError(f"Published issue #{issue_number} not found")
+
+    payload = build_card_payload(issue)
+    if output is not None:
+        write_card_payload(payload, output)
+        typer.echo(
+            json.dumps(
+                {
+                    "issue_number": issue_number,
+                    "output_path": str(output),
+                    "section_count": len(payload.sections),
+                    "featured_count": len(payload.featured_articles),
+                },
+                ensure_ascii=False,
+                indent=2,
+            )
+        )
+        return
+
+    typer.echo(card_payload_to_json(payload))
+
+
+@app.command("build-video-plan")
+def build_video_plan_command(
+    issue_number: int = typer.Option(..., "--issue-number", help="Published issue number"),
+    backup_path: Path | None = typer.Option(
+        None,
+        "--backup-path",
+        help="Override backup markdown path",
+    ),
+    output_dir: Path | None = typer.Option(
+        None,
+        "--output-dir",
+        help="Write timeline artifacts to a directory",
+    ),
+    db_path: str | None = typer.Option(default=None, help="Override database path"),
+) -> None:
+    database = _database(db_path)
+    database.initialize()
+    repo = IssueRepository(database)
+    issue = repo.get_published_bundle(issue_number)
+    if issue is None:
+        raise ValueError(f"Published issue #{issue_number} not found")
+
+    resolved_backup_path = backup_path or default_backup_path(issue.issue_number)
+    if not resolved_backup_path.exists():
+        raise FileNotFoundError(f"Backup markdown not found: {resolved_backup_path}")
+
+    content = resolved_backup_path.read_text(encoding="utf-8")
+    parsed = parse_backup_markdown(content, backup_path=resolved_backup_path)
+    if parsed.issue_number != issue.issue_number:
+        raise ValueError(
+            f"Backup issue number mismatch: database={issue.issue_number} "
+            f"markdown={parsed.issue_number}"
+        )
+
+    plan = assemble_video_plan(parsed)
+    if output_dir is not None:
+        paths = write_video_artifacts(plan, output_dir)
+        typer.echo(
+            json.dumps(
+                {
+                    "issue_number": plan.issue_number,
+                    "output_dir": str(output_dir),
+                    "timeline_path": str(paths.timeline_path),
+                    "subtitles_path": str(paths.subtitles_path),
+                    "narration_path": str(paths.narration_path),
+                    "section_count": plan.section_count,
+                    "article_count": plan.article_count,
+                    "estimated_duration_seconds": plan.estimated_duration_seconds,
+                },
+                ensure_ascii=False,
+                indent=2,
+            )
+        )
+        return
+
+    typer.echo(video_plan_to_json(plan))
 
 
 @app.command("rebuild")
