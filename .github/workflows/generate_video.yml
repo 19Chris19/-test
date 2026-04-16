@@ -5,7 +5,7 @@ on:
     inputs:
       issue_number:
         description: "Issue number for video rendering"
-        required: true
+        required: false
         default: "1"
       plan_path:
         description: "Optional plan path (relative to repo root)"
@@ -62,6 +62,9 @@ jobs:
         run: |
           set -euo pipefail
           issue_number="${{ github.event.inputs.issue_number }}"
+          if [ -z "$issue_number" ]; then
+            issue_number="1"
+          fi
           output_dir="services/video-maker/output/issue_${issue_number}"
           mkdir -p "$output_dir"
 
@@ -75,9 +78,20 @@ jobs:
           if [ -z "$frames_dir" ]; then
             frames_dir="${output_dir}/frames"
           fi
+          mkdir -p "$frames_dir"
 
-          if [ ! -d "$frames_dir" ]; then
-            echo "frames_dir does not exist: $frames_dir"
+          has_frames="$(find "$frames_dir" -maxdepth 1 -type f \( -name '*.png' -o -name '*.jpg' -o -name '*.jpeg' -o -name '*.webp' \) | head -n 1)"
+          if [ -z "$has_frames" ]; then
+            card_path="site/static/cards/issue_${issue_number}.png"
+            if [ -f "$card_path" ]; then
+              cp "$card_path" "${frames_dir}/default.png"
+            fi
+          fi
+
+          has_frames="$(find "$frames_dir" -maxdepth 1 -type f \( -name '*.png' -o -name '*.jpg' -o -name '*.jpeg' -o -name '*.webp' \) | head -n 1)"
+          if [ -z "$has_frames" ]; then
+            echo "No frame images found in ${frames_dir}."
+            echo "Provide --frames-dir or pre-generate card assets under site/static/cards/."
             exit 1
           fi
 

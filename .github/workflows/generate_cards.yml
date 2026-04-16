@@ -6,6 +6,7 @@ on:
       issue_number:
         description: "Issue number for card rendering"
         required: false
+        default: "1"
   issues:
     types: [labeled]
 
@@ -66,6 +67,9 @@ jobs:
             issue_number="${{ github.event.issue.number }}"
           else
             issue_number="${{ github.event.inputs.issue_number }}"
+          fi
+          if [ -z "$issue_number" ]; then
+            issue_number="1"
           fi
           if [ -z "$issue_number" ]; then
             echo "Missing issue number. Provide workflow input issue_number."

@@ -669,11 +669,25 @@ def render_video(
     default_output_dir = Path("services/video-maker/output") / f"issue_{issue_number}"
     resolved_frames_dir = frames_dir or (default_output_dir / "frames")
     resolved_output_path = output_path or (default_output_dir / f"issue_{issue_number}.mp4")
+    resolved_audio_dir = resolved_output_path.parent / "audio"
 
     resolved_audio_path = audio_path or (default_output_dir / "narration.wav")
     resolved_timeline_path = timeline_path or plan_path
     resolved_subtitles_path = subtitles_path
     tts_result: dict[str, Any] | None = None
+
+    # CI runners start from a clean filesystem. Ensure output tree exists before checks.
+    resolved_frames_dir.mkdir(parents=True, exist_ok=True)
+    resolved_audio_dir.mkdir(parents=True, exist_ok=True)
+    resolved_output_path.parent.mkdir(parents=True, exist_ok=True)
+    has_frame_files = any(
+        path.is_file() and path.suffix.lower() in IMAGE_EXTENSIONS
+        for path in resolved_frames_dir.iterdir()
+    )
+    if not has_frame_files and not auto_tts:
+        raise FileNotFoundError(
+            f"No frames found in {resolved_frames_dir} and auto_tts is disabled"
+        )
 
     if auto_tts or resolved_audio_path is None:
         if dry_run and (tts_base_url is None and tts_model is None):
@@ -727,7 +741,6 @@ def render_video(
         strict=strict,
     )
 
-    resolved_output_path.parent.mkdir(parents=True, exist_ok=True)
     command = _build_ffmpeg_command(
         ffmpeg_bin=ffmpeg_bin,
         concat_path=resolved_concat,
