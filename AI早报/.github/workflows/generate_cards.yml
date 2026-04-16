@@ -1,0 +1,133 @@
+name: Generate Cards
+
+on:
+  workflow_dispatch:
+    inputs:
+      issue_number:
+        description: "Issue number for card rendering"
+        required: false
+  issues:
+    types: [labeled]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: generate-cards-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  render-card:
+    if: >
+      github.actor != 'github-actions[bot]' &&
+      (
+        github.event_name == 'workflow_dispatch' ||
+        (github.event_name == 'issues' && github.event.label.name == 'published')
+      )
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: AI早报
+    env:
+      PYTHONPATH: src
+      NODE_OPTIONS: --max-old-space-size=1024
+      CARD_RENDER_PORT: "3300"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: AI早报/services/card-renderer/package-lock.json
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+          cd services/card-renderer
+          npm ci
+          npx playwright install --with-deps chromium
+
+      - name: Resolve issue number
+        id: params
+        shell: bash
+        run: |
+          set -euo pipefail
+          issue_number=""
+          if [ "${{ github.event_name }}" = "issues" ]; then
+            issue_number="${{ github.event.issue.number }}"
+          else
+            issue_number="${{ github.event.inputs.issue_number }}"
+          fi
+          if [ -z "$issue_number" ]; then
+            echo "Missing issue number. Provide workflow input issue_number."
+            exit 1
+          fi
+          echo "issue_number=$issue_number" >> "$GITHUB_OUTPUT"
+          echo "payload_path=services/card-renderer/output/issue_${issue_number}.json" >> "$GITHUB_OUTPUT"
+          echo "card_path=site/static/cards/issue_${issue_number}.png" >> "$GITHUB_OUTPUT"
+
+      - name: Export card payload
+        run: |
+          mkdir -p services/card-renderer/output
+          ai-daily export-card-payload \
+            --issue-number "${{ steps.params.outputs.issue_number }}" \
+            --output "${{ steps.params.outputs.payload_path }}"
+
+      - name: Render card with hard timeout
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p site/static/cards
+          mkdir -p services/card-renderer/output
+          rm -f /tmp/card-renderer.log
+          cd services/card-renderer
+          npm run dev -- --port "${CARD_RENDER_PORT}" > /tmp/card-renderer.log 2>&1 &
+          server_pid=$!
+          trap 'kill "${server_pid}" >/dev/null 2>&1 || true' EXIT
+
+          for _ in $(seq 1 30); do
+            if curl -sSf "http://127.0.0.1:${CARD_RENDER_PORT}/api/render" >/dev/null; then
+              break
+            fi
+            sleep 1
+          done
+
+          curl -sS --fail --max-time 20 \
+            -X POST "http://127.0.0.1:${CARD_RENDER_PORT}/api/render" \
+            -H "Content-Type: application/json" \
+            --data-binary "@${{ github.workspace }}/AI早报/${{ steps.params.outputs.payload_path }}" \
+            -o "${{ github.workspace }}/AI早报/${{ steps.params.outputs.card_path }}"
+
+          kill "${server_pid}" >/dev/null 2>&1 || true
+          wait "${server_pid}" 2>/dev/null || true
+
+      - name: Upload card artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: cards-issue-${{ steps.params.outputs.issue_number }}
+          path: |
+            AI早报/${{ steps.params.outputs.card_path }}
+            /tmp/card-renderer.log
+          if-no-files-found: warn
+
+      - name: Commit generated card ([skip ci])
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add "${{ steps.params.outputs.card_path }}"
+          if git diff --cached --quiet -- "${{ steps.params.outputs.card_path }}"; then
+            echo "No card changes to commit"
+            exit 0
+          fi
+          git commit -m "chore: generate card issue #${{ steps.params.outputs.issue_number }} [skip ci]"
+          git push origin HEAD:${{ github.event.repository.default_branch }}
+

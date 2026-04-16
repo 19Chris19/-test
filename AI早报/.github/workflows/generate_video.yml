@@ -1,0 +1,145 @@
+name: Generate Video
+
+on:
+  workflow_dispatch:
+    inputs:
+      issue_number:
+        description: "Issue number for video rendering"
+        required: true
+        default: "1"
+      plan_path:
+        description: "Optional plan path (relative to repo root)"
+        required: false
+      frames_dir:
+        description: "Optional frames directory (relative to repo root)"
+        required: false
+      auto_tts:
+        description: "Run online TTS and align timeline before rendering"
+        type: boolean
+        required: true
+        default: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: generate-video-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  render-video:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    defaults:
+      run:
+        working-directory: AI早报
+    env:
+      PYTHONPATH: src
+      LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
+      LLM_BASE_URL: ${{ vars.LLM_BASE_URL }}
+      TTS_MODEL: ${{ vars.TTS_MODEL }}
+      TTS_API_KEY: ${{ secrets.TTS_API_KEY }}
+      TTS_BASE_URL: ${{ vars.TTS_BASE_URL }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+          pip install imageio-ffmpeg
+
+      - name: Resolve run parameters
+        id: params
+        shell: bash
+        run: |
+          set -euo pipefail
+          issue_number="${{ github.event.inputs.issue_number }}"
+          output_dir="services/video-maker/output/issue_${issue_number}"
+          mkdir -p "$output_dir"
+
+          plan_path="${{ github.event.inputs.plan_path }}"
+          if [ -z "$plan_path" ]; then
+            plan_path="data/video_plan_${issue_number}.json"
+            ai-daily build-video-plan --issue-number "$issue_number" > "$plan_path"
+          fi
+
+          frames_dir="${{ github.event.inputs.frames_dir }}"
+          if [ -z "$frames_dir" ]; then
+            frames_dir="${output_dir}/frames"
+          fi
+
+          if [ ! -d "$frames_dir" ]; then
+            echo "frames_dir does not exist: $frames_dir"
+            exit 1
+          fi
+
+          tts_base_url="${TTS_BASE_URL:-${LLM_BASE_URL:-https://api.edgefn.net/v1}}"
+
+          echo "issue_number=$issue_number" >> "$GITHUB_OUTPUT"
+          echo "plan_path=$plan_path" >> "$GITHUB_OUTPUT"
+          echo "frames_dir=$frames_dir" >> "$GITHUB_OUTPUT"
+          echo "output_dir=$output_dir" >> "$GITHUB_OUTPUT"
+          echo "video_path=${output_dir}/issue_${issue_number}.mp4" >> "$GITHUB_OUTPUT"
+          echo "tts_base_url=$tts_base_url" >> "$GITHUB_OUTPUT"
+
+      - name: Validate TTS settings
+        if: ${{ github.event.inputs.auto_tts == 'true' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -z "${TTS_MODEL:-}" ]; then
+            echo "Missing TTS model. Set vars.TTS_MODEL."
+            exit 1
+          fi
+          if [ -z "${TTS_API_KEY:-}" ] && [ -z "${LLM_API_KEY:-}" ]; then
+            echo "Missing TTS API key. Set secrets.TTS_API_KEY or secrets.LLM_API_KEY."
+            exit 1
+          fi
+
+      - name: Render video (isolated heavy job)
+        shell: bash
+        run: |
+          set -euo pipefail
+          cmd=(python services/video-maker/video_maker.py render)
+          cmd+=(--plan "${{ steps.params.outputs.plan_path }}")
+          cmd+=(--frames-dir "${{ steps.params.outputs.frames_dir }}")
+          cmd+=(--output "${{ steps.params.outputs.video_path }}")
+          if [ "${{ github.event.inputs.auto_tts }}" = "true" ]; then
+            tts_key_env="LLM_API_KEY"
+            if [ -n "${TTS_API_KEY:-}" ]; then
+              tts_key_env="TTS_API_KEY"
+            fi
+            cmd+=(
+              --auto-tts
+              --tts-output-dir "${{ steps.params.outputs.output_dir }}/tts"
+              --tts-base-url "${{ steps.params.outputs.tts_base_url }}"
+              --tts-model "${TTS_MODEL}"
+              --tts-api-key-env "${tts_key_env}"
+            )
+          else
+            if [ ! -f "${{ steps.params.outputs.output_dir }}/narration.wav" ]; then
+              echo "Missing narration.wav and auto_tts=false"
+              exit 1
+            fi
+            cmd+=(--audio "${{ steps.params.outputs.output_dir }}/narration.wav")
+          fi
+          "${cmd[@]}"
+
+      - name: Upload video artifacts (no git commit)
+        uses: actions/upload-artifact@v4
+        with:
+          name: video-issue-${{ steps.params.outputs.issue_number }}
+          path: |
+            AI早报/${{ steps.params.outputs.video_path }}
+            AI早报/${{ steps.params.outputs.output_dir }}/*.ffconcat
+            AI早报/${{ steps.params.outputs.output_dir }}/tts/**
+            AI早报/${{ steps.params.outputs.plan_path }}
+          if-no-files-found: warn

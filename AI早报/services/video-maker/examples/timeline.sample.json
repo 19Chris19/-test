@@ -1,0 +1,39 @@
+{
+  "schema_version": "video-plan.v1",
+  "issue_number": 1,
+  "report_date": "2026-04-16",
+  "title": "AI 早报 2026-04-16",
+  "timeline": [
+    {
+      "index": 1,
+      "kind": "intro",
+      "start_seconds": 0.0,
+      "duration_seconds": 4.5,
+      "text": "AI 早报 2026-04-16，共 3 条精选内容。"
+    },
+    {
+      "index": 2,
+      "kind": "section",
+      "start_seconds": 4.5,
+      "duration_seconds": 2.8,
+      "section": "模型发布",
+      "text": "栏目：模型发布。"
+    },
+    {
+      "index": 3,
+      "kind": "article",
+      "start_seconds": 7.3,
+      "duration_seconds": 8.2,
+      "section": "模型发布",
+      "article_id": 101,
+      "text": "Qwen2.5 新版本发布。覆盖代码、推理与多语种场景。"
+    },
+    {
+      "index": 4,
+      "kind": "closing",
+      "start_seconds": 15.5,
+      "duration_seconds": 3.0,
+      "text": "更多内容见 GitHub Issue。"
+    }
+  ]
+}
