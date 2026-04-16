@@ -37,10 +37,10 @@ jobs:
     env:
       PYTHONPATH: src
       LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
-      LLM_BASE_URL: ${{ vars.LLM_BASE_URL }}
-      TTS_MODEL: ${{ vars.TTS_MODEL }}
+      LLM_BASE_URL: ${{ vars.LLM_BASE_URL || 'https://api.edgefn.net/v1' }}
+      TTS_MODEL: ${{ vars.TTS_MODEL || 'FunAudioLLM/CosyVoice2-0.5B' }}
       TTS_API_KEY: ${{ secrets.TTS_API_KEY }}
-      TTS_BASE_URL: ${{ vars.TTS_BASE_URL }}
+      TTS_BASE_URL: ${{ vars.TTS_BASE_URL || vars.LLM_BASE_URL || 'https://api.edgefn.net/v1' }}
     steps:
       - uses: actions/checkout@v4
         with:
