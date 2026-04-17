@@ -315,6 +315,17 @@ def _positive_int_from_env(name: str) -> int | None:
     return value
 
 
+def _x264_crf_from_env(default: int = 21) -> int:
+    raw = os.getenv("VIDEO_X264_CRF", "").strip()
+    if not raw:
+        return default
+    try:
+        value = int(raw)
+    except ValueError:
+        return default
+    return max(0, min(51, value))
+
+
 def _build_ffmpeg_command(
     *,
     ffmpeg_bin: str,
@@ -377,7 +388,9 @@ def _build_ffmpeg_command(
     ]
 
     if encoder == "libx264":
-        command.extend(["-preset", "medium", "-crf", "21"])
+        x264_preset = os.getenv("VIDEO_X264_PRESET", "medium").strip() or "medium"
+        x264_crf = _x264_crf_from_env(default=21)
+        command.extend(["-preset", x264_preset, "-crf", str(x264_crf)])
     elif encoder == "h264_videotoolbox":
         command.extend(["-b:v", "8M", "-maxrate", "12M", "-bufsize", "24M", "-allow_sw", "1"])
     elif encoder == "h264_nvenc":
