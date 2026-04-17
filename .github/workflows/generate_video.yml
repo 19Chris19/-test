@@ -50,6 +50,12 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg fonts-noto-cjk
+          fc-cache -fv
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip

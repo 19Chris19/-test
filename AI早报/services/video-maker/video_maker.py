@@ -24,6 +24,7 @@ IMAGE_EXTENSIONS = (".png", ".jpg", ".jpeg", ".webp")
 DEFAULT_FALLBACK_STEMS = ("default", "fallback", "cover")
 RETRYABLE_HTTP_STATUS = {429, 500, 502, 503, 504}
 DEFAULT_TTS_RESPONSE_FORMAT = "wav"
+DEFAULT_SUBTITLE_FORCE_STYLE = "Fontname=Noto Sans CJK SC"
 
 
 @dataclass
@@ -297,6 +298,10 @@ def _escape_subtitles_path(path: Path) -> str:
     return value
 
 
+def _escape_subtitle_style(style: str) -> str:
+    return style.replace("'", r"\'")
+
+
 def _build_ffmpeg_command(
     *,
     ffmpeg_bin: str,
@@ -309,7 +314,17 @@ def _build_ffmpeg_command(
 ) -> list[str]:
     filters = [f"fps={fps}"]
     if subtitles_path is not None:
-        filters.append(f"subtitles='{_escape_subtitles_path(subtitles_path)}'")
+        subtitle_style = (
+            os.getenv("VIDEO_SUBTITLE_FORCE_STYLE", DEFAULT_SUBTITLE_FORCE_STYLE).strip()
+            or DEFAULT_SUBTITLE_FORCE_STYLE
+        )
+        filters.append(
+            "subtitles='"
+            + _escape_subtitles_path(subtitles_path)
+            + "':force_style='"
+            + _escape_subtitle_style(subtitle_style)
+            + "'"
+        )
     filters.append("format=yuv420p")
     vf = ",".join(filters)
 
