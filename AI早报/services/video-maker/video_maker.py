@@ -331,6 +331,9 @@ def _build_ffmpeg_command(
     command = [
         ffmpeg_bin,
         "-y",
+        "-progress",
+        "pipe:1",
+        "-nostats",
         "-f",
         "concat",
         "-safe",
