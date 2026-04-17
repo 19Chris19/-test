@@ -128,6 +128,8 @@ jobs:
               --tts-output-dir "${{ steps.params.outputs.output_dir }}/tts"
               --tts-base-url "${{ steps.params.outputs.tts_base_url }}"
               --tts-model "${TTS_MODEL}"
+              --tts-timeout "120"
+              --tts-max-retries "5"
               --tts-api-key-env "${tts_key_env}"
             )
           else

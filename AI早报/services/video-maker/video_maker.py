@@ -10,6 +10,7 @@ import platform
 import re
 import shlex
 import shutil
+import socket
 import subprocess
 import time
 import urllib.error
@@ -592,6 +593,12 @@ def _call_tts_via_chat_completions(config: TtsConfig, text: str) -> bytes:
                     time.sleep((2**attempt) + 0.25)
                     continue
                 break
+            except (TimeoutError, socket.timeout) as exc:
+                last_error = str(exc) or "request timed out"
+                if attempt < config.max_retries - 1:
+                    time.sleep((2**attempt) + 0.25)
+                    continue
+                break
             except RuntimeError as exc:
                 last_error = str(exc)
                 break
@@ -633,6 +640,12 @@ def _call_tts(config: TtsConfig, text: str) -> bytes:
             break
         except urllib.error.URLError as exc:
             last_error = str(exc)
+            if attempt < config.max_retries - 1:
+                time.sleep((2**attempt) + 0.25)
+                continue
+            break
+        except (TimeoutError, socket.timeout) as exc:
+            last_error = str(exc) or "request timed out"
             if attempt < config.max_retries - 1:
                 time.sleep((2**attempt) + 0.25)
                 continue
