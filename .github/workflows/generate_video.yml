@@ -132,6 +132,7 @@ jobs:
           base_cmd+=(--plan "${{ steps.params.outputs.plan_path }}")
           base_cmd+=(--frames-dir "${{ steps.params.outputs.frames_dir }}")
           base_cmd+=(--output "${{ steps.params.outputs.video_path }}")
+          base_cmd+=(--encoder libx264)
           if [ "${{ github.event.inputs.auto_tts }}" = "true" ]; then
             tts_key_env="LLM_API_KEY"
             if [ -n "${TTS_API_KEY:-}" ]; then
