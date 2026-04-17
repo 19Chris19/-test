@@ -302,6 +302,19 @@ def _escape_subtitle_style(style: str) -> str:
     return style.replace("'", r"\'")
 
 
+def _positive_int_from_env(name: str) -> int | None:
+    raw = os.getenv(name, "").strip()
+    if not raw:
+        return None
+    try:
+        value = int(raw)
+    except ValueError:
+        return None
+    if value <= 0:
+        return None
+    return value
+
+
 def _build_ffmpeg_command(
     *,
     ffmpeg_bin: str,
@@ -313,6 +326,15 @@ def _build_ffmpeg_command(
     fps: int,
 ) -> list[str]:
     filters = [f"fps={fps}"]
+    max_width = _positive_int_from_env("VIDEO_MAX_WIDTH")
+    max_height = _positive_int_from_env("VIDEO_MAX_HEIGHT")
+    if max_width is not None or max_height is not None:
+        scale_width = str(max_width) if max_width is not None else "-2"
+        scale_height = str(max_height) if max_height is not None else "-2"
+        filters.append(
+            "scale="
+            + f"w={scale_width}:h={scale_height}:force_original_aspect_ratio=decrease"
+        )
     if subtitles_path is not None:
         subtitle_style = (
             os.getenv("VIDEO_SUBTITLE_FORCE_STYLE", DEFAULT_SUBTITLE_FORCE_STYLE).strip()
@@ -325,6 +347,8 @@ def _build_ffmpeg_command(
             + _escape_subtitle_style(subtitle_style)
             + "'"
         )
+    # Keep dimensions even for yuv420p encoders (libx264/hardware) after optional scaling/subtitles.
+    filters.append("scale=trunc(iw/2)*2:trunc(ih/2)*2")
     filters.append("format=yuv420p")
     vf = ",".join(filters)
 

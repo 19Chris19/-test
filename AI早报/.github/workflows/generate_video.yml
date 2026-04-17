@@ -30,7 +30,7 @@ jobs:
   render-video:
     if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 75
     defaults:
       run:
         working-directory: AI早报
@@ -41,6 +41,8 @@ jobs:
       TTS_MODEL: ${{ vars.TTS_MODEL }}
       TTS_API_KEY: ${{ secrets.TTS_API_KEY }}
       TTS_BASE_URL: ${{ vars.TTS_BASE_URL }}
+      VIDEO_MAX_WIDTH: "1080"
+      VIDEO_MAX_HEIGHT: "1920"
     steps:
       - uses: actions/checkout@v4
         with:
@@ -112,6 +114,8 @@ jobs:
           cmd+=(--plan "${{ steps.params.outputs.plan_path }}")
           cmd+=(--frames-dir "${{ steps.params.outputs.frames_dir }}")
           cmd+=(--output "${{ steps.params.outputs.video_path }}")
+          cmd+=(--encoder "libx264")
+          cmd+=(--fps "12")
           if [ "${{ github.event.inputs.auto_tts }}" = "true" ]; then
             tts_key_env="LLM_API_KEY"
             if [ -n "${TTS_API_KEY:-}" ]; then
